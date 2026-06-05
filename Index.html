@@ -1,903 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>GM Ride | Rider Panel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a0a; font-family: 'Inter', sans-serif; }
+    
+    :root {
+      --gm-green: #22c55e;
+      --gm-green-dark: #16a34a;
+      --gm-green-light: #dcfce7;
+      --gm-black: #0a0a0a;
+      --gm-gray: #1a1a1a;
+      --gm-gray2: #2a2a2a;
+      --gm-gray3: #3a3a3a;
+      --gm-text: #f5f5f5;
+      --gm-text2: #a3a3a3;
+      --gm-text3: #6b7280;
+      --gm-border: rgba(255,255,255,0.08);
+      --gm-card: #141414;
+      --gm-pill: #1e1e1e;
+      --radius: 20px;
+      --radius-sm: 12px;
+    }
 
-<style>
-:root {
-  --gm-green: #22c55e;
-  --gm-green-dark: #16a34a;
-  --gm-green-light: #dcfce7;
-  --gm-black: #0a0a0a;
-  --gm-gray: #1a1a1a;
-  --gm-gray2: #2a2a2a;
-  --gm-gray3: #3a3a3a;
-  --gm-text: #f5f5f5;
-  --gm-text2: #a3a3a3;
-  --gm-text3: #6b7280;
-  --gm-border: rgba(255,255,255,0.08);
-  --gm-card: #141414;
-  --gm-pill: #1e1e1e;
-  --radius: 16px;
-  --radius-sm: 10px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-sans); }
-h2.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
-.app-wrap { background: #0a0a0a; min-height: 600px; padding: 16px 0 24px; }
-.phone-frame {
-  width: 340px; min-height: 580px; background: var(--gm-black);
-  border-radius: 36px; border: 1.5px solid var(--gm-border);
-  margin: 0 auto; overflow: hidden; position: relative;
-  box-shadow: 0 0 60px rgba(34,197,94,0.1);
-}
-.status-bar {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 20px 6px; background: var(--gm-black);
-}
-.status-time { font-size: 13px; font-weight: 500; color: var(--gm-text); }
-.status-icons { display: flex; gap: 4px; align-items: center; color: var(--gm-text); }
-.status-icons i { font-size: 13px; }
-.screen { display: none; padding: 0 0 80px; }
-.screen.active { display: block; }
-.nav-bar {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 68px;
-  background: var(--gm-card); border-top: 0.5px solid var(--gm-border);
-  display: flex; align-items: center; justify-content: space-around; padding: 0 8px 8px;
-}
-.nav-item {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 6px 12px; cursor: pointer; border-radius: var(--radius-sm);
-  transition: all 0.15s;
-}
-.nav-item i { font-size: 20px; color: var(--gm-text3); }
-.nav-item span { font-size: 10px; color: var(--gm-text3); }
-.nav-item.active i, .nav-item.active span { color: var(--gm-green); }
-.nav-item:hover i, .nav-item:hover span { color: var(--gm-green); }
-.btn-primary {
-  background: var(--gm-green); color: #fff; border: none; border-radius: var(--radius-sm);
-  padding: 13px 24px; font-size: 15px; font-weight: 500; cursor: pointer; width: 100%;
-  transition: background 0.15s;
-}
-.btn-primary:hover { background: var(--gm-green-dark); }
-.btn-outline {
-  background: transparent; color: var(--gm-green); border: 1.5px solid var(--gm-green);
-  border-radius: var(--radius-sm); padding: 11px 24px; font-size: 15px; font-weight: 500;
-  cursor: pointer; width: 100%; transition: all 0.15s;
-}
-.btn-outline:hover { background: rgba(34,197,94,0.1); }
-.section-title { font-size: 18px; font-weight: 500; color: var(--gm-text); margin-bottom: 12px; }
-.card {
-  background: var(--gm-card); border-radius: var(--radius); border: 0.5px solid var(--gm-border);
-  padding: 14px 16px;
-}
-.map-placeholder {
-  background: var(--gm-gray); height: 220px; position: relative; overflow: hidden;
-}
-.map-grid {
-  position: absolute; inset: 0;
-  background-image: linear-gradient(rgba(34,197,94,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34,197,94,0.04) 1px, transparent 1px);
-  background-size: 30px 30px;
-}
-.map-road-h {
-  position: absolute; height: 3px; background: rgba(34,197,94,0.2); left: 0; right: 0;
-}
-.map-road-v {
-  position: absolute; width: 3px; background: rgba(34,197,94,0.2); top: 0; bottom: 0;
-}
-.map-pin {
-  position: absolute; width: 28px; height: 28px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--gm-green); border: 2px solid #fff;
-}
-.map-pin i { font-size: 14px; color: #fff; }
-.pulse-ring {
-  position: absolute; width: 44px; height: 44px; border-radius: 50%;
-  border: 2px solid var(--gm-green); opacity: 0.4; top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  animation: pulse 2s infinite;
-}
-@keyframes pulse { 0%,100% { transform: translate(-50%,-50%) scale(0.8); opacity: 0.6; } 50% { transform: translate(-50%,-50%) scale(1.3); opacity: 0.1; } }
-.tag {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: var(--gm-pill); border-radius: 20px; padding: 4px 10px;
-  font-size: 12px; color: var(--gm-text2); border: 0.5px solid var(--gm-border);
-}
-.tag.green { background: rgba(34,197,94,0.1); color: var(--gm-green); border-color: rgba(34,197,94,0.2); }
-.tag.red { background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.2); }
-.tag.amber { background: rgba(251,191,36,0.1); color: #fbbf24; border-color: rgba(251,191,36,0.2); }
-.input-field {
-  background: var(--gm-pill); border: 0.5px solid var(--gm-border); border-radius: var(--radius-sm);
-  padding: 12px 14px; color: var(--gm-text); font-size: 14px; width: 100%;
-  display: flex; align-items: center; gap: 10px; cursor: pointer;
-}
-.input-field i { color: var(--gm-green); font-size: 16px; flex-shrink: 0; }
-.input-field span { color: var(--gm-text2); font-size: 14px; }
-.input-field.filled span { color: var(--gm-text); }
-.avatar {
-  width: 38px; height: 38px; border-radius: 50%; background: var(--gm-green);
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.avatar span { font-size: 14px; font-weight: 500; color: #fff; }
-.star { color: #fbbf24; font-size: 13px; }
-.divider { height: 0.5px; background: var(--gm-border); margin: 12px 0; }
-.row { display: flex; align-items: center; gap: 10px; }
-.row.between { justify-content: space-between; }
-.row.top { align-items: flex-start; }
-.screen-header {
-  display: flex; align-items: center; gap: 10px; padding: 10px 16px 12px;
-  border-bottom: 0.5px solid var(--gm-border);
-}
-.screen-header .back { cursor: pointer; color: var(--gm-text); }
-.screen-header .title { font-size: 16px; font-weight: 500; color: var(--gm-text); }
-.badge {
-  width: 18px; height: 18px; border-radius: 50%; background: var(--gm-green);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 500; color: #fff;
-}
-</style>
+    .app-wrapper {
+      max-width: 400px;
+      margin: 0 auto;
+      background: var(--gm-black);
+      min-height: 100vh;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px var(--gm-border), 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
 
-<h2 class="sr-only">GM Ride — Interactive mobile app prototype with multiple screens including home, booking, driver mode, earnings, and profile</h2>
-<div class="app-wrap">
+    /* Custom Scrollbar */
+    .scroll-area::-webkit-scrollbar { width: 4px; }
+    .scroll-area::-webkit-scrollbar-track { background: var(--gm-gray); border-radius: 10px; }
+    .scroll-area::-webkit-scrollbar-thumb { background: var(--gm-green); border-radius: 10px; }
 
-<div style="text-align:center; padding: 0 16px 16px;">
-  <div style="display:inline-flex; align-items:center; gap:8px; margin-bottom:12px;">
-    <div style="width:32px;height:32px;background:var(--gm-green);border-radius:8px;display:flex;align-items:center;justify-content:center;">
-      <i class="ti ti-car" style="color:#fff;font-size:18px;"></i>
-    </div>
-    <span style="color:var(--gm-text);font-size:20px;font-weight:500;">GM Ride</span>
-  </div>
-  <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;" id="tab-bar">
-    <button class="tab-btn active" onclick="showTab('home')" style="background:var(--gm-green);color:#fff;border:none;padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;">Home</button>
-    <button class="tab-btn" onclick="showTab('booking')" style="background:var(--gm-pill);color:var(--gm-text2);border:0.5px solid var(--gm-border);padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;">Booking</button>
-    <button class="tab-btn" onclick="showTab('negotiate')" style="background:var(--gm-pill);color:var(--gm-text2);border:0.5px solid var(--gm-border);padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;">Negotiate</button>
-    <button class="tab-btn" onclick="showTab('tracking')" style="background:var(--gm-pill);color:var(--gm-text2);border:0.5px solid var(--gm-border);padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;">Tracking</button>
-    <button class="tab-btn" onclick="showTab('driver')" style="background:var(--gm-pill);color:var(--gm-text2);border:0.5px solid var(--gm-border);padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;">Driver</button>
-    <button class="tab-btn" onclick="showTab('earnings')" style="background:var(--gm-pill);color:var(--gm-text2);border:0.5px solid var(--gm-border);padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;">Earnings</button>
-    <button class="tab-btn" onclick="showTab('wallet')" style="background:var(--gm-pill);color:var(--gm-text2);border:0.5px solid var(--gm-border);padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;">Wallet</button>
-    <button class="tab-btn" onclick="showTab('admin')" style="background:var(--gm-pill);color:var(--gm-text2);border:0.5px solid var(--gm-border);padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;">Admin</button>
-    <button class="tab-btn" onclick="showTab('profile')" style="background:var(--gm-pill);color:var(--gm-text2);border:0.5px solid var(--gm-border);padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;">Profile</button>
-  </div>
-</div>
-
-<div class="phone-frame">
+    .status-bar { display: flex; justify-content: space-between; padding: 14px 20px 8px; color: var(--gm-text); font-size: 14px; font-weight: 500; background: var(--gm-black); }
+    
+    .screen { display: none; padding: 0 16px 80px; }
+    .screen.active { display: block; }
+    
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      max-width: 400px;
+      width: 100%;
+      background: var(--gm-card);
+      border-top: 0.5px solid var(--gm-border);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 20px 22px;
+      backdrop-filter: blur(10px);
+      z-index: 100;
+    }
+    
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 30px;
+      transition: all 0.2s;
+      color: var(--gm-text3);
+    }
+    .nav-btn i { font-size: 22px; }
+    .nav-btn span { font-size: 11px; font-weight: 500; }
+    .nav-btn.active { color: var(--gm-green); background: rgba(34,197,94,0.1); }
+    
+    .btn-primary {
+      background: var(--gm-green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      width: 100%;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-primary:hover { background: var(--gm-green-dark); transform: scale(0.98); }
+    
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--gm-green);
+      color: var(--gm-green);
+      border-radius: var(--radius-sm);
+      padding: 12px 20px;
+      font-weight: 600;
+      width: 100%;
+      cursor: pointer;
+    }
+    
+    .card {
+      background: var(--gm-card);
+      border-radius: var(--radius);
+      border: 0.5px solid var(--gm-border);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    
+    .input-field {
+      background: var(--gm-pill);
+      border: 0.5px solid var(--gm-border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .input-field i { color: var(--gm-green); font-size: 18px; }
+    .input-field span { color: var(--gm-text2); font-size: 14px; }
+    
+    .map-preview {
+      background: linear-gradient(145deg, #1a2a1f, #0f0f0f);
+      height: 200px;
+      border-radius: var(--radius);
+      position: relative;
+      overflow: hidden;
+      margin: 12px 0;
+      background-image: radial-gradient(circle at 10% 30%, rgba(34,197,94,0.1) 2px, transparent 2px);
+      background-size: 28px 28px;
+    }
+    
+    .avatar {
+      width: 48px;
+      height: 48px;
+      background: var(--gm-green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: white;
+    }
+    
+    .tag {
+      background: var(--gm-pill);
+      padding: 4px 12px;
+      border-radius: 30px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .tag-green { background: rgba(34,197,94,0.15); color: var(--gm-green); }
+    .tag-amber { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    
+    .section-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--gm-text);
+      margin: 16px 0 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .between { justify-content: space-between; }
+    
+    .star { color: #fbbf24; font-size: 12px; letter-spacing: 2px; }
+  </style>
+</head>
+<body>
+<div class="app-wrapper">
   <div class="status-bar">
-    <span class="status-time">9:41</span>
-    <div class="status-icons">
-      <i class="ti ti-signal-3g"></i>
-      <i class="ti ti-wifi"></i>
-      <i class="ti ti-battery-2"></i>
-    </div>
+    <span>9:41</span>
+    <span><i class="fas fa-signal"></i> <i class="fas fa-wifi"></i> <i class="fas fa-battery-full"></i></span>
   </div>
 
   <!-- HOME SCREEN -->
-  <div class="screen active" id="screen-home" style="overflow-y:auto;max-height:540px;">
-    <div style="padding:14px 16px 0;">
-      <div class="row between" style="margin-bottom:16px;">
+  <div id="home-screen" class="screen active">
+    <div style="padding: 12px 0 8px;">
+      <div class="row between">
         <div>
-          <div style="font-size:12px;color:var(--gm-text2);">Good morning</div>
-          <div style="font-size:18px;font-weight:500;color:var(--gm-text);">Ahmed Khan <span style="font-size:16px;">👋</span></div>
+          <div style="color: var(--gm-text2); font-size: 13px;">Good evening</div>
+          <div style="color: white; font-size: 22px; font-weight: 700;">Ahmed Khan <span style="font-size: 20px;">👋</span></div>
         </div>
-        <div style="position:relative;">
-          <div style="width:38px;height:38px;background:var(--gm-green);border-radius:50%;display:flex;align-items:center;justify-content:center;">
-            <i class="ti ti-bell" style="color:#fff;font-size:16px;"></i>
-          </div>
-          <div class="badge" style="position:absolute;top:-2px;right:-2px;">3</div>
+        <div style="background: var(--gm-pill); padding: 10px; border-radius: 50%; position: relative;">
+          <i class="fas fa-bell" style="color: var(--gm-green); font-size: 18px;"></i>
+          <span style="position: absolute; top: -2px; right: -2px; background: #ef4444; width: 14px; height: 14px; border-radius: 50%; font-size: 9px; text-align: center; line-height: 14px; color: white;">3</span>
         </div>
       </div>
-
-      <div style="margin-bottom:14px;">
-        <div class="input-field" onclick="showTab('booking')" style="margin-bottom:8px;">
-          <i class="ti ti-map-pin"></i>
-          <span>Where are you going?</span>
+      
+      <div class="input-field" onclick="switchScreen('booking')">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>Where are you going?</span>
+      </div>
+      
+      <div class="section-title">Quick picks <span style="font-size: 12px; color: var(--gm-green);">view all</span></div>
+      <div class="row">
+        <div class="card" style="flex: 1; text-align: center; cursor: pointer;" onclick="switchScreen('booking')">
+          <i class="fas fa-home" style="color: var(--gm-green); font-size: 22px;"></i>
+          <div style="font-weight: 500; margin-top: 6px;">Home</div>
+          <div style="font-size: 11px; color: var(--gm-text2);">3.2 km</div>
+        </div>
+        <div class="card" style="flex: 1; text-align: center; cursor: pointer;" onclick="switchScreen('booking')">
+          <i class="fas fa-briefcase" style="color: var(--gm-green); font-size: 22px;"></i>
+          <div style="font-weight: 500; margin-top: 6px;">Work</div>
+          <div style="font-size: 11px; color: var(--gm-text2);">6.8 km</div>
+        </div>
+        <div class="card" style="flex: 1; text-align: center; cursor: pointer;" onclick="switchScreen('booking')">
+          <i class="fas fa-plus-circle" style="color: var(--gm-text3); font-size: 22px;"></i>
+          <div style="font-weight: 500; margin-top: 6px;">Custom</div>
+          <div style="font-size: 11px; color: var(--gm-text2);">set location</div>
         </div>
       </div>
-
-      <div style="margin-bottom:16px;">
-        <div style="font-size:12px;color:var(--gm-text2);margin-bottom:8px;">Quick picks</div>
-        <div style="display:flex;gap:8px;">
-          <div class="card" style="flex:1;cursor:pointer;" onclick="showTab('booking')">
-            <i class="ti ti-home" style="color:var(--gm-green);font-size:20px;display:block;margin-bottom:4px;"></i>
-            <div style="font-size:12px;color:var(--gm-text);">Home</div>
-            <div style="font-size:11px;color:var(--gm-text2);">3.2 km</div>
+      
+      <div class="section-title">Recent rides</div>
+      <div class="card">
+        <div class="row between">
+          <div class="row">
+            <i class="fas fa-motorcycle" style="color: var(--gm-green); font-size: 20px;"></i>
+            <div><div style="font-weight: 500;">Qasim Chowk → Mall</div><div style="font-size: 11px; color: var(--gm-text2);">Today, 8:30 AM</div></div>
           </div>
-          <div class="card" style="flex:1;cursor:pointer;" onclick="showTab('booking')">
-            <i class="ti ti-building" style="color:var(--gm-green);font-size:20px;display:block;margin-bottom:4px;"></i>
-            <div style="font-size:12px;color:var(--gm-text);">Work</div>
-            <div style="font-size:11px;color:var(--gm-text2);">8.5 km</div>
-          </div>
-          <div class="card" style="flex:1;cursor:pointer;" onclick="showTab('booking')">
-            <i class="ti ti-plus" style="color:var(--gm-text3);font-size:20px;display:block;margin-bottom:4px;"></i>
-            <div style="font-size:12px;color:var(--gm-text2);">Add</div>
-            <div style="font-size:11px;color:var(--gm-text3);">New place</div>
-          </div>
+          <div><span style="color: var(--gm-green); font-weight: 700;">Rs. 95</span><div class="star">★★★★★</div></div>
         </div>
       </div>
-
-      <div style="margin-bottom:16px;">
-        <div class="section-title" style="font-size:14px;margin-bottom:10px;">Vehicle categories</div>
-        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;">
-          <div onclick="showTab('booking')" style="cursor:pointer;min-width:72px;background:var(--gm-card);border:0.5px solid var(--gm-border);border-radius:var(--radius);padding:12px 8px;text-align:center;border-color:var(--gm-green);">
-            <i class="ti ti-motorbike" style="color:var(--gm-green);font-size:22px;display:block;margin-bottom:4px;"></i>
-            <div style="font-size:11px;color:var(--gm-green);">Bike</div>
+      <div class="card">
+        <div class="row between">
+          <div class="row">
+            <i class="fas fa-car" style="color: var(--gm-green); font-size: 20px;"></i>
+            <div><div style="font-weight: 500;">Cantt → Airport</div><div style="font-size: 11px; color: var(--gm-text2);">Yesterday, 6:15 PM</div></div>
           </div>
-          <div onclick="showTab('booking')" style="cursor:pointer;min-width:72px;background:var(--gm-card);border:0.5px solid var(--gm-border);border-radius:var(--radius);padding:12px 8px;text-align:center;">
-            <i class="ti ti-car" style="color:var(--gm-text2);font-size:22px;display:block;margin-bottom:4px;"></i>
-            <div style="font-size:11px;color:var(--gm-text2);">Car</div>
-          </div>
-          <div onclick="showTab('booking')" style="cursor:pointer;min-width:72px;background:var(--gm-card);border:0.5px solid var(--gm-border);border-radius:var(--radius);padding:12px 8px;text-align:center;">
-            <i class="ti ti-truck" style="color:var(--gm-text2);font-size:22px;display:block;margin-bottom:4px;"></i>
-            <div style="font-size:11px;color:var(--gm-text2);">Auto</div>
-          </div>
-          <div onclick="showTab('booking')" style="cursor:pointer;min-width:72px;background:var(--gm-card);border:0.5px solid var(--gm-border);border-radius:var(--radius);padding:12px 8px;text-align:center;">
-            <i class="ti ti-package" style="color:var(--gm-text2);font-size:22px;display:block;margin-bottom:4px;"></i>
-            <div style="font-size:11px;color:var(--gm-text2);">Delivery</div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div class="row between" style="margin-bottom:10px;">
-          <div class="section-title" style="font-size:14px;margin-bottom:0;">Recent rides</div>
-          <span style="font-size:12px;color:var(--gm-green);cursor:pointer;">See all</span>
-        </div>
-        <div class="card" style="margin-bottom:8px;">
-          <div class="row between">
-            <div class="row">
-              <div style="width:34px;height:34px;background:rgba(34,197,94,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;">
-                <i class="ti ti-car" style="color:var(--gm-green);font-size:16px;"></i>
-              </div>
-              <div>
-                <div style="font-size:13px;color:var(--gm-text);">Qasim Chowk → Mall</div>
-                <div style="font-size:11px;color:var(--gm-text2);">Today, 8:30 AM</div>
-              </div>
-            </div>
-            <div>
-              <div style="font-size:13px;font-weight:500;color:var(--gm-green);">Rs. 180</div>
-              <div style="display:flex;gap:1px;justify-content:flex-end;">${'⭐'.repeat(5)}</div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="row between">
-            <div class="row">
-              <div style="width:34px;height:34px;background:rgba(34,197,94,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;">
-                <i class="ti ti-motorbike" style="color:var(--gm-green);font-size:16px;"></i>
-              </div>
-              <div>
-                <div style="font-size:13px;color:var(--gm-text);">Cantt → Airport</div>
-                <div style="font-size:11px;color:var(--gm-text2);">Yesterday, 6:15 PM</div>
-              </div>
-            </div>
-            <div>
-              <div style="font-size:13px;font-weight:500;color:var(--gm-green);">Rs. 95</div>
-              <div style="display:flex;gap:1px;justify-content:flex-end;">⭐⭐⭐⭐</div>
-            </div>
-          </div>
+          <div><span style="color: var(--gm-green); font-weight: 700;">Rs. 280</span><div class="star">★★★★☆</div></div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- BOOKING SCREEN -->
-  <div class="screen" id="screen-booking" style="overflow-y:auto;max-height:540px;">
-    <div class="screen-header">
-      <i class="ti ti-arrow-left back" onclick="showTab('home')" style="font-size:20px;"></i>
-      <span class="title">Book a Ride</span>
+  <div id="booking-screen" class="screen">
+    <div class="row" style="margin: 8px 0 12px;">
+      <i class="fas fa-arrow-left" style="color: white; font-size: 20px; cursor: pointer;" onclick="switchScreen('home')"></i>
+      <h3 style="color: white; font-weight: 600;">Book a ride</h3>
     </div>
-    <div class="map-placeholder">
-      <div class="map-grid"></div>
-      <div class="map-road-h" style="top:40%;"></div>
-      <div class="map-road-h" style="top:70%;"></div>
-      <div class="map-road-v" style="left:30%;"></div>
-      <div class="map-road-v" style="left:65%;"></div>
-      <div style="position:absolute;top:35%;left:24%;transform:translate(-50%,-50%);">
-        <div class="pulse-ring"></div>
-        <div class="map-pin" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
-          <i class="ti ti-map-pin"></i>
-        </div>
-      </div>
-      <div style="position:absolute;top:62%;left:62%;transform:translate(-50%,-50%);">
-        <div class="map-pin" style="background:#ef4444;">
-          <i class="ti ti-flag"></i>
-        </div>
-      </div>
-      <div style="position:absolute;bottom:10px;right:10px;background:var(--gm-card);border-radius:8px;border:0.5px solid var(--gm-border);padding:6px 10px;">
-        <div style="font-size:11px;color:var(--gm-green);">Est. 5 min away</div>
+    <div class="map-preview">
+      <div style="position: absolute; bottom: 16px; left: 16px; background: rgba(0,0,0,0.6); padding: 6px 14px; border-radius: 30px; font-size: 12px;">
+        <i class="fas fa-clock"></i> Estimated 5 min away
       </div>
     </div>
-    <div style="padding:14px 16px;">
-      <div style="margin-bottom:10px;">
-        <div class="input-field filled" style="margin-bottom:6px;">
-          <i class="ti ti-circle-dot" style="color:var(--gm-green);"></i>
-          <span>Qasim Chowk, Multan</span>
-        </div>
-        <div class="input-field" style="border-color:rgba(239,68,68,0.3);">
-          <i class="ti ti-map-pin" style="color:#ef4444;"></i>
-          <span>Select destination...</span>
-        </div>
-      </div>
-      <div style="margin-bottom:12px;">
-        <div style="font-size:12px;color:var(--gm-text2);margin-bottom:8px;">Select vehicle</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div class="card" style="cursor:pointer;border-color:var(--gm-green);" id="veh-bike" onclick="selectVehicle('bike')">
-            <div class="row between">
-              <div class="row">
-                <i class="ti ti-motorbike" style="color:var(--gm-green);font-size:22px;"></i>
-                <div>
-                  <div style="font-size:13px;color:var(--gm-text);">Bike</div>
-                  <div style="font-size:11px;color:var(--gm-text2);">2 min • 1 seat</div>
-                </div>
-              </div>
-              <div style="text-align:right;">
-                <div style="font-size:14px;font-weight:500;color:var(--gm-text);">Rs. 80–120</div>
-                <div class="tag green" style="font-size:10px;padding:2px 8px;">Cheapest</div>
-              </div>
-            </div>
-          </div>
-          <div class="card" style="cursor:pointer;" id="veh-car" onclick="selectVehicle('car')">
-            <div class="row between">
-              <div class="row">
-                <i class="ti ti-car" style="color:var(--gm-text2);font-size:22px;"></i>
-                <div>
-                  <div style="font-size:13px;color:var(--gm-text);">Car</div>
-                  <div style="font-size:11px;color:var(--gm-text2);">4 min • 4 seats</div>
-                </div>
-              </div>
-              <div style="text-align:right;">
-                <div style="font-size:14px;font-weight:500;color:var(--gm-text);">Rs. 160–220</div>
-                <div class="tag amber" style="font-size:10px;padding:2px 8px;">Popular</div>
-              </div>
-            </div>
-          </div>
-          <div class="card" style="cursor:pointer;" id="veh-auto" onclick="selectVehicle('auto')">
-            <div class="row between">
-              <div class="row">
-                <i class="ti ti-truck" style="color:var(--gm-text2);font-size:22px;"></i>
-                <div>
-                  <div style="font-size:13px;color:var(--gm-text);">Auto</div>
-                  <div style="font-size:11px;color:var(--gm-text2);">3 min • 3 seats</div>
-                </div>
-              </div>
-              <div style="text-align:right;">
-                <div style="font-size:14px;font-weight:500;color:var(--gm-text);">Rs. 100–140</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <button class="btn-primary" onclick="showTab('negotiate')">Set my price →</button>
+    <div class="input-field"><i class="fas fa-circle" style="color: var(--gm-green);"></i><span>Qasim Chowk, Multan</span></div>
+    <div class="input-field"><i class="fas fa-flag-checkered" style="color: #ef4444;"></i><span>Select destination...</span></div>
+    
+    <div class="section-title">Choose vehicle</div>
+    <div class="card" style="border: 1.5px solid var(--gm-green);" onclick="selectVehicle('bike')">
+      <div class="row between"><div class="row"><i class="fas fa-motorcycle" style="font-size: 26px; color: var(--gm-green);"></i><div><strong>Bike</strong><div style="font-size: 12px;">2 min • 1 seat</div></div></div><div><span style="font-weight: 700;">Rs. 80–120</span><div class="tag tag-green">Cheapest</div></div></div>
     </div>
+    <div class="card" onclick="selectVehicle('car')">
+      <div class="row between"><div class="row"><i class="fas fa-car" style="font-size: 26px;"></i><div><strong>Car</strong><div style="font-size: 12px;">4 min • 4 seats</div></div></div><div><span style="font-weight: 700;">Rs. 160–220</span><div class="tag tag-amber">Popular</div></div></div>
+    </div>
+    <button class="btn-primary" onclick="switchScreen('negotiate')">Set my price →</button>
   </div>
 
-  <!-- NEGOTIATE SCREEN -->
-  <div class="screen" id="screen-negotiate" style="overflow-y:auto;max-height:540px;">
-    <div class="screen-header">
-      <i class="ti ti-arrow-left back" onclick="showTab('booking')" style="font-size:20px;"></i>
-      <span class="title">Fare Negotiation</span>
-    </div>
-    <div style="padding:14px 16px;">
-      <div class="card" style="margin-bottom:14px;background:rgba(34,197,94,0.05);border-color:rgba(34,197,94,0.2);">
-        <div class="row" style="margin-bottom:6px;">
-          <i class="ti ti-map-pin" style="color:var(--gm-green);"></i>
-          <span style="font-size:12px;color:var(--gm-text2);">Qasim Chowk</span>
-        </div>
-        <div class="row" style="padding-left:4px;">
-          <div style="width:1px;height:14px;background:var(--gm-border);margin-left:7px;margin-right:17px;"></div>
-        </div>
-        <div class="row">
-          <i class="ti ti-flag" style="color:#ef4444;"></i>
-          <span style="font-size:12px;color:var(--gm-text2);">Multan Cantt Railway Stn</span>
-        </div>
-        <div class="divider"></div>
-        <div class="row between">
-          <span style="font-size:12px;color:var(--gm-text2);">Distance</span>
-          <span style="font-size:12px;color:var(--gm-text);">6.4 km</span>
-        </div>
-        <div class="row between" style="margin-top:4px;">
-          <span style="font-size:12px;color:var(--gm-text2);">Suggested fare</span>
-          <span style="font-size:12px;color:var(--gm-green);">Rs. 150–200</span>
-        </div>
-      </div>
-
-      <div style="margin-bottom:16px;">
-        <div style="font-size:14px;color:var(--gm-text);margin-bottom:8px;">Your offer</div>
-        <div style="background:var(--gm-pill);border-radius:var(--radius-sm);border:1.5px solid var(--gm-green);padding:14px 16px;display:flex;align-items:center;gap:10px;">
-          <span style="font-size:18px;font-weight:500;color:var(--gm-green);">Rs.</span>
-          <input type="number" value="150" id="fare-input" style="background:transparent;border:none;font-size:24px;font-weight:500;color:var(--gm-text);width:100%;outline:none;" />
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px;">
-          <button onclick="adjustFare(-20)" style="flex:1;background:var(--gm-pill);color:var(--gm-text);border:0.5px solid var(--gm-border);border-radius:8px;padding:8px;font-size:16px;cursor:pointer;">−20</button>
-          <button onclick="adjustFare(-10)" style="flex:1;background:var(--gm-pill);color:var(--gm-text);border:0.5px solid var(--gm-border);border-radius:8px;padding:8px;font-size:16px;cursor:pointer;">−10</button>
-          <button onclick="adjustFare(10)" style="flex:1;background:var(--gm-pill);color:var(--gm-text);border:0.5px solid var(--gm-border);border-radius:8px;padding:8px;font-size:16px;cursor:pointer;">+10</button>
-          <button onclick="adjustFare(20)" style="flex:1;background:var(--gm-pill);color:var(--gm-text);border:0.5px solid var(--gm-border);border-radius:8px;padding:8px;font-size:16px;cursor:pointer;">+20</button>
-        </div>
-      </div>
-
-      <div style="margin-bottom:14px;">
-        <div style="font-size:14px;color:var(--gm-text);margin-bottom:8px;">Nearby drivers (4)</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div class="card">
-            <div class="row between">
-              <div class="row">
-                <div class="avatar"><span>MR</span></div>
-                <div>
-                  <div style="font-size:13px;color:var(--gm-text);">Muhammad Raza</div>
-                  <div style="display:flex;gap:2px;align-items:center;">
-                    <span class="star">★★★★★</span>
-                    <span style="font-size:11px;color:var(--gm-text2);"> 4.9 • 0.8 km</span>
-                  </div>
-                </div>
-              </div>
-              <div class="tag green" style="cursor:pointer;" onclick="showTab('tracking')">Accept</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="row between">
-              <div class="row">
-                <div class="avatar" style="background:#3b82f6;"><span>AK</span></div>
-                <div>
-                  <div style="font-size:13px;color:var(--gm-text);">Ali Khan</div>
-                  <div style="display:flex;gap:2px;align-items:center;">
-                    <span class="star">★★★★</span>
-                    <span style="font-size:11px;color:var(--gm-text2);"> 4.7 • 1.2 km</span>
-                  </div>
-                </div>
-              </div>
-              <div style="text-align:right;">
-                <div style="font-size:12px;color:var(--gm-text2);">Counter</div>
-                <div style="font-size:13px;font-weight:500;color:#fbbf24;">Rs. 170</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <button class="btn-primary" onclick="showTab('tracking')">
-        <i class="ti ti-send" style="margin-right:6px;"></i> Send offer to drivers
-      </button>
-    </div>
+  <!-- NEGOTIATION SCREEN -->
+  <div id="negotiate-screen" class="screen">
+    <div class="row"><i class="fas fa-arrow-left" style="color: white; cursor: pointer;" onclick="switchScreen('booking')"></i><h3 style="color: white;">Fare negotiation</h3></div>
+    <div class="card"><div class="row between"><span>Distance: 6.4 km</span><span>Suggested: Rs 150–200</span></div></div>
+    <div class="card"><label style="color: white; font-weight: 500;">Your offer (PKR)</label><input type="number" id="offerValue" value="150" style="width:100%; background: var(--gm-gray2); border: 1px solid var(--gm-green); border-radius: 14px; padding: 14px; margin-top: 8px; color: white; font-size: 24px; font-weight: 700; text-align: center;"></div>
+    <div class="row" style="justify-content: center; gap: 12px; margin-bottom: 16px;"><button onclick="adjustFare(-10)" style="background: var(--gm-pill); border: none; padding: 10px 18px; border-radius: 40px; color: white;">-10</button><button onclick="adjustFare(10)" style="background: var(--gm-pill); border: none; padding: 10px 18px; border-radius: 40px; color: white;">+10</button><button onclick="adjustFare(20)" style="background: var(--gm-pill); border: none; padding: 10px 18px; border-radius: 40px; color: white;">+20</button></div>
+    <div class="card"><div class="row between"><div class="row"><div class="avatar">MR</div><div><strong>Muhammad Raza</strong><div>⭐ 4.9 • 0.8 km away</div></div></div><button class="tag tag-green" style="background: var(--gm-green); color: black; padding: 8px 16px;" onclick="switchScreen('tracking')">Accept</button></div></div>
+    <button class="btn-primary" onclick="switchScreen('tracking')">Send offer to drivers</button>
   </div>
 
   <!-- TRACKING SCREEN -->
-  <div class="screen" id="screen-tracking" style="overflow-y:auto;max-height:540px;">
-    <div class="map-placeholder" style="height:240px;">
-      <div class="map-grid"></div>
-      <div class="map-road-h" style="top:45%;"></div>
-      <div class="map-road-h" style="top:75%;"></div>
-      <div class="map-road-v" style="left:35%;"></div>
-      <div class="map-road-v" style="left:70%;"></div>
-      <div style="position:absolute;top:40%;left:62%;">
-        <div class="map-pin">
-          <i class="ti ti-car"></i>
-        </div>
-      </div>
-      <div style="position:absolute;top:65%;left:32%;">
-        <div class="map-pin" style="background:#ef4444;">
-          <i class="ti ti-map-pin"></i>
-        </div>
-      </div>
-      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);border-radius:20px;padding:5px 14px;border:0.5px solid var(--gm-border);">
-        <span style="font-size:12px;color:var(--gm-green);">Driver arriving in <strong style="color:#fff;">3 min</strong></span>
-      </div>
-    </div>
-    <div style="padding:12px 16px;">
-      <div class="card" style="margin-bottom:10px;">
-        <div class="row between" style="margin-bottom:10px;">
-          <div class="row">
-            <div class="avatar"><span>MR</span></div>
-            <div>
-              <div style="font-size:14px;color:var(--gm-text);font-weight:500;">Muhammad Raza</div>
-              <div style="display:flex;gap:2px;align-items:center;">
-                <span class="star">★★★★★</span>
-                <span style="font-size:11px;color:var(--gm-text2);"> 4.9 • 847 rides</span>
-              </div>
-            </div>
-          </div>
-          <div class="tag green">Rs. 150</div>
-        </div>
-        <div style="background:var(--gm-pill);border-radius:var(--radius-sm);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <div style="font-size:11px;color:var(--gm-text2);">Toyota Corolla</div>
-            <div style="font-size:15px;font-weight:500;color:var(--gm-text);">LEP-4521</div>
-          </div>
-          <div style="width:2px;height:28px;background:var(--gm-border);"></div>
-          <div style="text-align:center;">
-            <div style="font-size:11px;color:var(--gm-text2);">Color</div>
-            <div style="font-size:13px;color:var(--gm-text);">White</div>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <div style="display:flex;gap:8px;">
-          <button style="flex:1;background:rgba(34,197,94,0.1);color:var(--gm-green);border:0.5px solid rgba(34,197,94,0.3);border-radius:8px;padding:9px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;gap:4px;">
-            <i class="ti ti-phone" style="font-size:15px;"></i> Call
-          </button>
-          <button style="flex:1;background:rgba(59,130,246,0.1);color:#60a5fa;border:0.5px solid rgba(59,130,246,0.3);border-radius:8px;padding:9px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;gap:4px;">
-            <i class="ti ti-message" style="font-size:15px;"></i> Chat
-          </button>
-          <button style="flex:1;background:rgba(239,68,68,0.1);color:#ef4444;border:0.5px solid rgba(239,68,68,0.3);border-radius:8px;padding:9px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;gap:4px;">
-            <i class="ti ti-x" style="font-size:15px;"></i> Cancel
-          </button>
-        </div>
-      </div>
-      <div style="background:rgba(239,68,68,0.1);border-radius:var(--radius-sm);border:0.5px solid rgba(239,68,68,0.3);padding:12px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;">
-        <i class="ti ti-alert-triangle" style="color:#ef4444;font-size:18px;"></i>
-        <span style="font-size:13px;font-weight:500;color:#ef4444;">Emergency SOS</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- DRIVER SCREEN -->
-  <div class="screen" id="screen-driver" style="overflow-y:auto;max-height:540px;">
-    <div style="padding:14px 16px 0;">
-      <div class="row between" style="margin-bottom:14px;">
-        <div>
-          <div style="font-size:12px;color:var(--gm-text2);">Driver mode</div>
-          <div style="font-size:18px;font-weight:500;color:var(--gm-text);">Muhammad Raza</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:12px;color:var(--gm-green);">Online</span>
-          <div onclick="toggleDriver()" id="driver-toggle" style="width:44px;height:24px;background:var(--gm-green);border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;">
-            <div style="width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;right:3px;top:3px;transition:right 0.2s;"></div>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:8px;margin-bottom:14px;">
-        <div class="card" style="flex:1;text-align:center;">
-          <div style="font-size:20px;font-weight:500;color:var(--gm-green);">Rs. 1,240</div>
-          <div style="font-size:11px;color:var(--gm-text2);">Today's earnings</div>
-        </div>
-        <div class="card" style="flex:1;text-align:center;">
-          <div style="font-size:20px;font-weight:500;color:var(--gm-text);">8</div>
-          <div style="font-size:11px;color:var(--gm-text2);">Rides today</div>
-        </div>
-      </div>
-
-      <div style="margin-bottom:14px;">
-        <div class="section-title" style="font-size:14px;margin-bottom:8px;">New ride request</div>
-        <div class="card" style="border-color:var(--gm-green);">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
-            <div>
-              <div style="font-size:12px;color:var(--gm-text2);">Pickup</div>
-              <div style="font-size:14px;color:var(--gm-text);">Hussain Agahi</div>
-            </div>
-            <div class="tag amber">1.2 km away</div>
-          </div>
-          <div style="margin-bottom:10px;">
-            <div style="font-size:12px;color:var(--gm-text2);">Destination</div>
-            <div style="font-size:14px;color:var(--gm-text);">Multan Public School</div>
-          </div>
-          <div class="row between" style="margin-bottom:10px;">
-            <span style="font-size:12px;color:var(--gm-text2);">Passenger offer</span>
-            <span style="font-size:18px;font-weight:500;color:var(--gm-green);">Rs. 150</span>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn-primary" style="padding:10px;" onclick="showTab('tracking')">
-              <i class="ti ti-check"></i> Accept
-            </button>
-            <button style="flex:1;background:var(--gm-pill);color:var(--gm-text2);border:0.5px solid var(--gm-border);border-radius:var(--radius-sm);padding:10px;cursor:pointer;font-size:14px;">Counter</button>
-            <button style="flex:0.5;background:rgba(239,68,68,0.1);color:#ef4444;border:0.5px solid rgba(239,68,68,0.2);border-radius:var(--radius-sm);padding:10px;cursor:pointer;font-size:14px;">
-              <i class="ti ti-x"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="map-placeholder" style="height:140px;border-radius:var(--radius);overflow:hidden;">
-        <div class="map-grid"></div>
-        <div class="map-road-h" style="top:50%;"></div>
-        <div class="map-road-v" style="left:50%;"></div>
-        <div style="position:absolute;top:45%;left:46%;">
-          <div class="map-pin" style="width:22px;height:22px;">
-            <i class="ti ti-car" style="font-size:11px;"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- EARNINGS SCREEN -->
-  <div class="screen" id="screen-earnings" style="overflow-y:auto;max-height:540px;">
-    <div class="screen-header">
-      <span class="title">Earnings Dashboard</span>
-    </div>
-    <div style="padding:14px 16px;">
-      <div class="card" style="background:linear-gradient(135deg,rgba(34,197,94,0.15),rgba(34,197,94,0.05));border-color:rgba(34,197,94,0.2);margin-bottom:14px;text-align:center;padding:20px;">
-        <div style="font-size:12px;color:var(--gm-text2);margin-bottom:4px;">This week's earnings</div>
-        <div style="font-size:32px;font-weight:500;color:var(--gm-green);">Rs. 8,450</div>
-        <div style="font-size:12px;color:var(--gm-text2);margin-top:4px;">42 rides completed</div>
-      </div>
-
-      <div style="display:flex;gap:8px;margin-bottom:14px;">
-        <div class="card" style="flex:1;text-align:center;">
-          <div style="font-size:16px;font-weight:500;color:var(--gm-text);">Rs. 1,240</div>
-          <div style="font-size:11px;color:var(--gm-text2);">Today</div>
-        </div>
-        <div class="card" style="flex:1;text-align:center;">
-          <div style="font-size:16px;font-weight:500;color:var(--gm-text);">Rs. 32,800</div>
-          <div style="font-size:11px;color:var(--gm-text2);">This month</div>
-        </div>
-      </div>
-
-      <div style="margin-bottom:14px;">
-        <div style="font-size:13px;color:var(--gm-text2);margin-bottom:8px;">Daily breakdown</div>
-        <div style="display:flex;align-items:flex-end;gap:6px;height:80px;padding:0 4px;">
-          ${[45,62,38,75,88,54,68].map((h,i)=>`
-          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">
-            <div style="flex:1;width:100%;background:${i===6?'var(--gm-green)':'rgba(34,197,94,0.25)'};border-radius:4px 4px 0 0;min-height:${Math.round(h*0.6)}px;"></div>
-            <div style="font-size:10px;color:var(--gm-text3);">${['M','T','W','T','F','S','S'][i]}</div>
-          </div>`).join('')}
-        </div>
-      </div>
-
-      <button class="btn-primary" style="margin-bottom:8px;">
-        <i class="ti ti-download" style="margin-right:6px;"></i> Request Withdrawal
-      </button>
-      <button class="btn-outline">View full history</button>
-    </div>
+  <div id="tracking-screen" class="screen">
+    <div class="map-preview" style="height: 220px;"><div style="position: absolute; top: 40%; left: 70%;"><div style="background: var(--gm-green); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i class="fas fa-car" style="color: white;"></i></div></div></div>
+    <div class="card"><div class="row between"><div class="row"><div class="avatar">MR</div><div><strong>Muhammad Raza</strong><div>ETA: 3 minutes</div></div></div><span class="tag tag-green">Rs. 150</span></div><div style="background: var(--gm-pill); border-radius: 12px; padding: 10px; margin-top: 12px; display: flex; justify-content: space-between;"><span><i class="fas fa-car"></i> LEP-4521</span><span>White Corolla</span></div><div class="row" style="margin-top: 14px;"><button style="flex:1; background: #1f1f1f; border: none; padding: 10px; border-radius: 30px; color: white;"><i class="fas fa-phone"></i> Call</button><button style="flex:1; background: #1f1f1f; border: none; padding: 10px; border-radius: 30px; color: white;"><i class="fas fa-comment"></i> Chat</button></div></div>
+    <div style="background: rgba(239,68,68,0.1); border-radius: 20px; padding: 14px; text-align: center; color: #ef4444; margin-bottom: 12px;"><i class="fas fa-shield-alt"></i> Emergency SOS • 24/7 support</div>
+    <button class="btn-outline" onclick="switchScreen('home')">Back to home</button>
   </div>
 
   <!-- WALLET SCREEN -->
-  <div class="screen" id="screen-wallet" style="overflow-y:auto;max-height:540px;">
-    <div class="screen-header">
-      <span class="title">Wallet</span>
-    </div>
-    <div style="padding:14px 16px;">
-      <div class="card" style="background:linear-gradient(135deg,rgba(34,197,94,0.15),rgba(34,197,94,0.03));border-color:rgba(34,197,94,0.25);margin-bottom:14px;padding:20px;text-align:center;">
-        <div style="font-size:12px;color:var(--gm-text2);margin-bottom:4px;">GM Wallet Balance</div>
-        <div style="font-size:36px;font-weight:500;color:var(--gm-green);">Rs. 2,500</div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
-          <button style="background:var(--gm-green);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;cursor:pointer;">Add Money</button>
-          <button style="background:var(--gm-pill);color:var(--gm-text);border:0.5px solid var(--gm-border);border-radius:8px;padding:8px 20px;font-size:13px;cursor:pointer;">Send</button>
-        </div>
-      </div>
-
-      <div style="margin-bottom:14px;">
-        <div style="font-size:13px;color:var(--gm-text2);margin-bottom:8px;">Promo code</div>
-        <div style="display:flex;gap:8px;">
-          <div class="input-field" style="flex:1;">
-            <i class="ti ti-tag"></i>
-            <span>Enter promo code</span>
-          </div>
-          <button style="background:var(--gm-green);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;cursor:pointer;flex-shrink:0;">Apply</button>
-        </div>
-      </div>
-
-      <div>
-        <div style="font-size:13px;color:var(--gm-text2);margin-bottom:8px;">Recent transactions</div>
-        <div class="card" style="margin-bottom:6px;">
-          <div class="row between">
-            <div class="row">
-              <div style="width:32px;height:32px;background:rgba(34,197,94,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;">
-                <i class="ti ti-arrow-down" style="color:var(--gm-green);font-size:15px;"></i>
-              </div>
-              <div>
-                <div style="font-size:13px;color:var(--gm-text);">Added via Jazz Cash</div>
-                <div style="font-size:11px;color:var(--gm-text2);">Today, 10:15 AM</div>
-              </div>
-            </div>
-            <span style="font-size:13px;font-weight:500;color:var(--gm-green);">+Rs. 500</span>
-          </div>
-        </div>
-        <div class="card" style="margin-bottom:6px;">
-          <div class="row between">
-            <div class="row">
-              <div style="width:32px;height:32px;background:rgba(239,68,68,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;">
-                <i class="ti ti-car" style="color:#ef4444;font-size:15px;"></i>
-              </div>
-              <div>
-                <div style="font-size:13px;color:var(--gm-text);">Ride payment</div>
-                <div style="font-size:11px;color:var(--gm-text2);">Today, 8:30 AM</div>
-              </div>
-            </div>
-            <span style="font-size:13px;font-weight:500;color:#ef4444;">−Rs. 180</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ADMIN SCREEN -->
-  <div class="screen" id="screen-admin" style="overflow-y:auto;max-height:540px;">
-    <div class="screen-header">
-      <span class="title">Admin Panel</span>
-      <div class="tag green" style="margin-left:auto;font-size:11px;">Live</div>
-    </div>
-    <div style="padding:14px 16px;">
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-        <div class="card" style="flex:1;min-width:calc(50%-4px);text-align:center;padding:12px;">
-          <div style="font-size:20px;font-weight:500;color:var(--gm-green);">1,284</div>
-          <div style="font-size:11px;color:var(--gm-text2);">Total users</div>
-        </div>
-        <div class="card" style="flex:1;min-width:calc(50%-4px);text-align:center;padding:12px;">
-          <div style="font-size:20px;font-weight:500;color:#60a5fa;">342</div>
-          <div style="font-size:11px;color:var(--gm-text2);">Active drivers</div>
-        </div>
-        <div class="card" style="flex:1;min-width:calc(50%-4px);text-align:center;padding:12px;">
-          <div style="font-size:20px;font-weight:500;color:#fbbf24;">28</div>
-          <div style="font-size:11px;color:var(--gm-text2);">Rides live now</div>
-        </div>
-        <div class="card" style="flex:1;min-width:calc(50%-4px);text-align:center;padding:12px;">
-          <div style="font-size:20px;font-weight:500;color:var(--gm-green);">Rs. 48K</div>
-          <div style="font-size:11px;color:var(--gm-text2);">Today's revenue</div>
-        </div>
-      </div>
-
-      <div style="margin-bottom:14px;">
-        <div style="font-size:13px;color:var(--gm-text2);margin-bottom:8px;">Pending approvals</div>
-        <div class="card" style="margin-bottom:6px;">
-          <div class="row between">
-            <div class="row">
-              <div class="avatar" style="background:#3b82f6;"><span>SA</span></div>
-              <div>
-                <div style="font-size:13px;color:var(--gm-text);">Shahid Ahmed</div>
-                <div style="font-size:11px;color:var(--gm-text2);">Driver registration</div>
-              </div>
-            </div>
-            <div style="display:flex;gap:6px;">
-              <div style="background:rgba(34,197,94,0.1);border:0.5px solid rgba(34,197,94,0.3);border-radius:6px;padding:4px 8px;cursor:pointer;">
-                <i class="ti ti-check" style="color:var(--gm-green);font-size:13px;"></i>
-              </div>
-              <div style="background:rgba(239,68,68,0.1);border:0.5px solid rgba(239,68,68,0.3);border-radius:6px;padding:4px 8px;cursor:pointer;">
-                <i class="ti ti-x" style="color:#ef4444;font-size:13px;"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="row between">
-            <div class="row">
-              <div class="avatar" style="background:#8b5cf6;"><span>FM</span></div>
-              <div>
-                <div style="font-size:13px;color:var(--gm-text);">Farhan Malik</div>
-                <div style="font-size:11px;color:var(--gm-text2);">Withdrawal request</div>
-              </div>
-            </div>
-            <div>
-              <div style="font-size:13px;font-weight:500;color:var(--gm-text);">Rs. 3,200</div>
-              <div class="tag amber" style="font-size:10px;padding:2px 8px;">Review</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div style="font-size:13px;color:var(--gm-text2);margin-bottom:8px;">Quick actions</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <div class="tag" style="cursor:pointer;padding:6px 12px;"><i class="ti ti-tag" style="font-size:13px;margin-right:4px;"></i>Promo codes</div>
-          <div class="tag" style="cursor:pointer;padding:6px 12px;"><i class="ti ti-bell" style="font-size:13px;margin-right:4px;"></i>Notifications</div>
-          <div class="tag" style="cursor:pointer;padding:6px 12px;"><i class="ti ti-ban" style="font-size:13px;margin-right:4px;"></i>Ban user</div>
-          <div class="tag" style="cursor:pointer;padding:6px 12px;"><i class="ti ti-chart-bar" style="font-size:13px;margin-right:4px;"></i>Reports</div>
-        </div>
-      </div>
-    </div>
+  <div id="wallet-screen" class="screen">
+    <h3 style="color: white; margin: 12px 0;">GM Wallet</h3>
+    <div class="card" style="text-align: center; background: linear-gradient(135deg, #1e2a1e, #0c0c0c);"><span style="font-size: 42px; font-weight: 800; color: var(--gm-green);">₨ 2,500</span><div><button class="btn-primary" style="margin-top: 12px; width: auto; padding: 10px 24px;">Add Money</button></div></div>
+    <div class="section-title">Recent transactions</div>
+    <div class="card"><div class="row between"><div class="row"><i class="fas fa-arrow-down" style="color: green;"></i><div>Added via JazzCash</div></div><span style="color: green;">+Rs 500</span></div></div>
+    <div class="card"><div class="row between"><div class="row"><i class="fas fa-car"></i><div>Ride payment (Mall ride)</div></div><span style="color: #ef4444;">-Rs 95</span></div></div>
+    <div class="input-field"><i class="fas fa-ticket-alt"></i><span>Enter promo code</span><button style="background: var(--gm-green); border: none; padding: 8px 16px; border-radius: 40px;">Apply</button></div>
   </div>
 
   <!-- PROFILE SCREEN -->
-  <div class="screen" id="screen-profile" style="overflow-y:auto;max-height:540px;">
-    <div style="padding:20px 16px 0;">
-      <div style="text-align:center;margin-bottom:16px;">
-        <div style="width:70px;height:70px;background:var(--gm-green);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;border:3px solid rgba(34,197,94,0.3);">
-          <span style="font-size:24px;font-weight:500;color:#fff;">AK</span>
-        </div>
-        <div style="font-size:17px;font-weight:500;color:var(--gm-text);">Ahmed Khan</div>
-        <div style="font-size:13px;color:var(--gm-text2);">+92 300 1234567</div>
-        <div style="display:flex;justify-content:center;gap:4px;margin-top:4px;">
-          <span class="star">★★★★★</span>
-          <span style="font-size:12px;color:var(--gm-text2);">4.8 (127 rides)</span>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:8px;margin-bottom:16px;">
-        <div class="card" style="flex:1;text-align:center;padding:12px;">
-          <div style="font-size:18px;font-weight:500;color:var(--gm-green);">127</div>
-          <div style="font-size:11px;color:var(--gm-text2);">Total rides</div>
-        </div>
-        <div class="card" style="flex:1;text-align:center;padding:12px;">
-          <div style="font-size:18px;font-weight:500;color:var(--gm-green);">Rs. 2,500</div>
-          <div style="font-size:11px;color:var(--gm-text2);">Wallet</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div onclick="void(0)" style="display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-bottom:0.5px solid var(--gm-border);">
-          <i class="ti ti-user" style="color:var(--gm-green);font-size:18px;width:24px;"></i>
-          <span style="font-size:14px;color:var(--gm-text);flex:1;">Edit profile</span>
-          <i class="ti ti-chevron-right" style="color:var(--gm-text3);font-size:16px;"></i>
-        </div>
-        <div onclick="void(0)" style="display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-bottom:0.5px solid var(--gm-border);">
-          <i class="ti ti-map-pin" style="color:var(--gm-green);font-size:18px;width:24px;"></i>
-          <span style="font-size:14px;color:var(--gm-text);flex:1;">Saved locations</span>
-          <i class="ti ti-chevron-right" style="color:var(--gm-text3);font-size:16px;"></i>
-        </div>
-        <div onclick="void(0)" style="display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-bottom:0.5px solid var(--gm-border);">
-          <i class="ti ti-language" style="color:var(--gm-green);font-size:18px;width:24px;"></i>
-          <span style="font-size:14px;color:var(--gm-text);flex:1;">Language</span>
-          <span style="font-size:12px;color:var(--gm-text2);margin-right:4px;">English</span>
-          <i class="ti ti-chevron-right" style="color:var(--gm-text3);font-size:16px;"></i>
-        </div>
-        <div onclick="void(0)" style="display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-bottom:0.5px solid var(--gm-border);">
-          <i class="ti ti-moon" style="color:var(--gm-green);font-size:18px;width:24px;"></i>
-          <span style="font-size:14px;color:var(--gm-text);flex:1;">Dark mode</span>
-          <div style="width:36px;height:20px;background:var(--gm-green);border-radius:10px;position:relative;">
-            <div style="width:14px;height:14px;background:#fff;border-radius:50%;position:absolute;right:3px;top:3px;"></div>
-          </div>
-        </div>
-        <div onclick="void(0)" style="display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;">
-          <i class="ti ti-help" style="color:var(--gm-green);font-size:18px;width:24px;"></i>
-          <span style="font-size:14px;color:var(--gm-text);flex:1;">Help & support</span>
-          <i class="ti ti-chevron-right" style="color:var(--gm-text3);font-size:16px;"></i>
-        </div>
-      </div>
-
-      <button class="btn-outline" style="margin-top:12px;margin-bottom:4px;border-color:rgba(239,68,68,0.3);color:#ef4444;">
-        <i class="ti ti-logout" style="margin-right:6px;"></i> Sign out
-      </button>
-    </div>
+  <div id="profile-screen" class="screen">
+    <div style="text-align: center; margin: 16px 0;"><div class="avatar" style="width: 80px; height: 80px; margin: 0 auto; font-size: 32px;">AK</div><h2 style="color: white; margin-top: 10px;">Ahmed Khan</h2><div style="color: var(--gm-text2);">+92 300 1234567</div><div class="star" style="margin-top: 4px;">★★★★★ 4.8 (127 rides)</div></div>
+    <div class="card"><div class="row" style="margin-bottom: 12px;"><i class="fas fa-user" style="width: 28px;"></i><span>Personal information</span><i class="fas fa-chevron-right" style="margin-left: auto;"></i></div><div class="row" style="margin-bottom: 12px;"><i class="fas fa-map-pin" style="width: 28px;"></i><span>Saved addresses</span><i class="fas fa-chevron-right" style="margin-left: auto;"></i></div><div class="row"><i class="fas fa-globe" style="width: 28px;"></i><span>Language: English</span><i class="fas fa-chevron-right" style="margin-left: auto;"></i></div></div>
+    <button class="btn-outline" style="border-color: #ef4444; color: #ef4444; margin-top: 12px;" onclick="switchScreen('home')"><i class="fas fa-sign-out-alt"></i> Sign out</button>
   </div>
 
-  <nav class="nav-bar" id="main-nav">
-    <div class="nav-item active" onclick="showTab('home')" id="nav-home">
-      <i class="ti ti-home"></i><span>Home</span>
-    </div>
-    <div class="nav-item" onclick="showTab('booking')" id="nav-booking">
-      <i class="ti ti-car"></i><span>Book</span>
-    </div>
-    <div class="nav-item" onclick="showTab('wallet')" id="nav-wallet">
-      <i class="ti ti-wallet"></i><span>Wallet</span>
-    </div>
-    <div class="nav-item" onclick="showTab('earnings')" id="nav-earnings">
-      <i class="ti ti-chart-bar"></i><span>Earnings</span>
-    </div>
-    <div class="nav-item" onclick="showTab('profile')" id="nav-profile">
-      <i class="ti ti-user"></i><span>Profile</span>
-    </div>
-  </nav>
-</div>
-
+  <!-- BOTTOM NAVIGATION -->
+  <div class="bottom-nav">
+    <div class="nav-btn" onclick="switchScreen('home')" id="nav-home"><i class="fas fa-home"></i><span>Home</span></div>
+    <div class="nav-btn" onclick="switchScreen('booking')" id="nav-booking"><i class="fas fa-car"></i><span>Book</span></div>
+    <div class="nav-btn" onclick="switchScreen('wallet')" id="nav-wallet"><i class="fas fa-wallet"></i><span>Wallet</span></div>
+    <div class="nav-btn" onclick="switchScreen('profile')" id="nav-profile"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
 </div>
 
 <script>
-const tabScreenMap = {
-  home:'home', booking:'booking', negotiate:'negotiate', tracking:'tracking',
-  driver:'driver', earnings:'earnings', wallet:'wallet', admin:'admin', profile:'profile'
-};
-const navMap = {
-  home:'nav-home', booking:'nav-booking', wallet:'nav-wallet', earnings:'nav-earnings', profile:'nav-profile'
-};
-
-function showTab(tab) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const screen = document.getElementById('screen-' + tabScreenMap[tab]);
-  if (screen) screen.classList.add('active');
-
-  document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    const tabs = ['home','booking','negotiate','tracking','driver','earnings','wallet','admin','profile'];
-    b.style.background = tabs[i] === tab ? 'var(--gm-green)' : 'var(--gm-pill)';
-    b.style.color = tabs[i] === tab ? '#fff' : 'var(--gm-text2)';
-    b.style.border = tabs[i] === tab ? 'none' : '0.5px solid var(--gm-border)';
-  });
-
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  if (navMap[tab]) document.getElementById(navMap[tab]).classList.add('active');
-
-  const noNav = ['negotiate','tracking','driver','admin'];
-  document.getElementById('main-nav').style.display = noNav.includes(tab) ? 'none' : 'flex';
-}
-
-function adjustFare(amount) {
-  const input = document.getElementById('fare-input');
-  input.value = Math.max(50, parseInt(input.value||150) + amount);
-}
-
-function selectVehicle(type) {
-  ['bike','car','auto'].forEach(v => {
-    const el = document.getElementById('veh-'+v);
-    if (el) el.style.borderColor = v===type ? 'var(--gm-green)' : 'var(--gm-border)';
-  });
-}
-
-let driverOnline = true;
-function toggleDriver() {
-  driverOnline = !driverOnline;
-  const tog = document.getElementById('driver-toggle');
-  tog.style.background = driverOnline ? 'var(--gm-green)' : '#6b7280';
-  tog.querySelector('div').style.right = driverOnline ? '3px' : 'calc(100% - 21px)';
-}
+  function switchScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(`${screenId}-screen`).classList.add('active');
+    
+    const navIds = ['home', 'booking', 'wallet', 'profile'];
+    navIds.forEach(id => {
+      const btn = document.getElementById(`nav-${id}`);
+      if(btn) btn.classList.remove('active');
+    });
+    if(navIds.includes(screenId)) document.getElementById(`nav-${screenId}`).classList.add('active');
+  }
+  
+  function adjustFare(amount) {
+    let input = document.getElementById('offerValue');
+    let val = parseInt(input.value) || 150;
+    input.value = Math.max(50, val + amount);
+  }
+  
+  function selectVehicle(type) { /* visual feedback only */ }
+  
+  window.switchScreen = switchScreen;
+  window.adjustFare = adjustFare;
+  window.selectVehicle = selectVehicle;
 </script>
+</body>
+</html>
